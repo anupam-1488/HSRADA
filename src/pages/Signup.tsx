@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User } from 'lucide-react';
+import { Form, FormikProvider, useFormik } from 'formik';
 
 function Signup() {
   const navigate = useNavigate();
@@ -11,6 +12,35 @@ function Signup() {
     confirmPassword: ''
   });
 
+  interface FormValues {
+    name: string,
+    email: string,
+    password: string,
+    confirmPassword: string
+  }
+
+  const formik=useFormik<FormValues>({
+    initialValues: {
+      email: '',
+      password: '',
+      name:'',
+      confirmPassword:""
+    },
+    onSubmit: (values) => {
+      console.log(values); 
+      // if (success) {
+        //     if (formData.email === 'admin') {
+        //       navigate('/admin/dashboard');
+        //     } else {
+        //       // If user has active orders, show home page
+        //       navigate('/');
+        //     }
+        //   } else {
+        //     alert('Invalid credentials');
+        //   }
+    }
+
+  })
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
@@ -24,6 +54,8 @@ function Signup() {
 
   return (
     <main className="min-h-screen bg-amber-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <FormikProvider value={formik}>
+    <Form onChange={formik.handleChange} onSubmit={formik.handleSubmit}>
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div>
           <h2 className="text-center text-3xl font-bold text-amber-900">Create an Account</h2>
@@ -35,7 +67,7 @@ function Signup() {
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        {/* <form className="mt-8 space-y-6" onSubmit={handleSubmit}> */}
           <div className="rounded-md shadow-sm space-y-4">
             <div>
               <label htmlFor="name" className="sr-only">Full Name</label>
@@ -50,8 +82,8 @@ function Signup() {
                   required
                   className="appearance-none rounded-lg relative block w-full pl-10 px-3 py-2 border border-amber-300 placeholder-amber-500 text-amber-900 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
                   placeholder="Full Name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  // value={formData.name}
+                  // onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
               </div>
             </div>
@@ -69,8 +101,8 @@ function Signup() {
                   required
                   className="appearance-none rounded-lg relative block w-full pl-10 px-3 py-2 border border-amber-300 placeholder-amber-500 text-amber-900 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
                   placeholder="Email address"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  // value={formData.email}
+                  // onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
               </div>
             </div>
@@ -88,8 +120,8 @@ function Signup() {
                   required
                   className="appearance-none rounded-lg relative block w-full pl-10 px-3 py-2 border border-amber-300 placeholder-amber-500 text-amber-900 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
                   placeholder="Password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  // value={formData.password}
+                  // onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 />
               </div>
             </div>
@@ -101,14 +133,14 @@ function Signup() {
                   <Lock className="h-5 w-5 text-amber-500" />
                 </div>
                 <input
-                  id="confirm-password"
-                  name="confirm-password"
+                  id="confirmPassword"
+                  name="confirmPassword"
                   type="password"
                   required
                   className="appearance-none rounded-lg relative block w-full pl-10 px-3 py-2 border border-amber-300 placeholder-amber-500 text-amber-900 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
                   placeholder="Confirm Password"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  // value={formData.confirmPassword}
+                  // onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 />
               </div>
             </div>
@@ -122,8 +154,10 @@ function Signup() {
               Create Account
             </button>
           </div>
-        </form>
+        {/* </form> */}
       </div>
+      </Form>
+      </FormikProvider>
     </main>
   );
 }

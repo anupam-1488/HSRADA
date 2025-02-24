@@ -3,33 +3,50 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useOrders } from '../context/OrderContext';
+import { Form, FormikProvider, useFormik } from 'formik';
+import axios from 'axios';
  
 function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const { hasActiveOrders } = useOrders();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const success = login(formData.email, formData.password);
-    if (success) {
-      if (formData.email === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        // If user has active orders, show home page
-        navigate('/');
-      }
-    } else {
-      alert('Invalid credentials');
-    }
-  };
+
+ 
+ 
+  interface FormValues {
+    email: string;
+    password: string;
+  }
+  
+  const formik = useFormik<FormValues>({
+    initialValues: {
+      email: '',
+      password: ''
+    },
+
+    
+    onSubmit: (values) => {
+      console.log(values); 
+      axios.post("http://172.16.119.165:8081/authenication/auth/Login",values).then((res) => {
+        if (res?.data?.responseCode === "01") {
+          localStorage.setItem('userName', res?.data?.userData?.Name)
+            if (res?.data?.userData?.Email === 'admin') {
+              navigate('/admin/dashboard');
+            } else {
+              // If user has active orders, show home page
+              navigate('/');
+            }
+          } else {
+            alert('Invalid credentials');
+          }})}})
+           
+ 
  
   return (
 <main className="min-h-screen bg-amber-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <FormikProvider value={formik}>
+    <Form onChange={formik.handleChange} onSubmit={formik.handleSubmit}>
+
+   
 <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
 <div>
 <h2 className="text-center text-3xl font-bold text-amber-900">Welcome Back</h2>
@@ -47,7 +64,7 @@ function Login() {
 </p>
 </div>
 </div>
-<form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+
 <div className="rounded-md shadow-sm space-y-4">
 <div>
 <label htmlFor="email" className="sr-only">Email address</label>
@@ -62,8 +79,7 @@ function Login() {
                   required
                   className="appearance-none rounded-lg relative block w-full pl-10 px-3 py-2 border border-amber-300 placeholder-amber-500 text-amber-900 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
                   placeholder="Email address"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                 
                 />
 </div>
 </div>
@@ -80,8 +96,7 @@ function Login() {
                   required
                   className="appearance-none rounded-lg relative block w-full pl-10 px-3 py-2 border border-amber-300 placeholder-amber-500 text-amber-900 focus:outline-none focus:ring-amber-500 focus:border-amber-500"
                   placeholder="Password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                
                 />
 </div>
 </div>
@@ -115,8 +130,9 @@ function Login() {
               Sign in
 </button>
 </div>
-</form>
 </div>
+</Form>
+</FormikProvider>
 </main>
   );
 }

@@ -39,6 +39,7 @@ function App() {
               
               <footer className="bg-amber-900 text-amber-50 py-8 mt-16">
                 <div className="container mx-auto px-4 text-center">
+                  
                   <p>© 2024 HSRADA Chocolates. All rights reserved.</p>
                   <p className="mt-2">Made with love in India 🇮🇳</p>
                 </div>

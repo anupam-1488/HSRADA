@@ -1,65 +1,42 @@
 import React, { useState } from 'react';
-import { Trash2, Plus, Minus } from 'lucide-react';
+import { Trash2, Plus, Minus, AlertCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+ 
+interface AddressFormData {
+  fullName: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  pincode: string;
+  phone: string;
+}
  
 function Cart() {
   const { items, removeFromCart, updateQuantity, total, clearCart } = useCart();
+  const  user  = localStorage.getItem("userName");
+  const navigate = useNavigate();
   const [processing, setProcessing] = useState(false);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [addressData, setAddressData] = useState<AddressFormData>({
+    fullName: '',
+    streetAddress: '',
+    city: '',
+    state: '',
+    pincode: '',
+    phone: ''
+  });
  
-  // const handleCheckout = async () => {
-  //   setProcessing(true);
- 
-  //   // Create an order on your backend (Replace with your actual backend API)
-  //   const response = await fetch("https://your-backend.com/api/create-order", {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify({ amount: total + 50 }), // Amount in INR (paise)
-  //   });
- 
-  //   const orderData = await response.json();
- 
-  //   const options = {
-  //     key: "your_razorpay_key", // Replace with your Razorpay API key
-  //     amount: orderData.amount,
-  //     currency: "INR",
-  //     name: "Chocolate Store",
-  //     description: "Order Payment",
-  //     image: "/logo.png",
-  //     order_id: orderData.id, // Order ID from backend
-  //     handler: function (response) {
-  //       alert("Payment successful! Payment ID: " + response.razorpay_payment_id);
-  //       clearCart();
-  //       setProcessing(false);
-  //     },
-  //     prefill: {
-  //       name: "John Doe",
-  //       email: "johndoe@example.com",
-  //       contact: "9999999999",
-  //     },
-  //     theme: {
-  //       color: "#f59e0b",
-  //     },
-  //     method: {
-  //       upi: true, // Enable UPI
-  //       card: false,
-  //       netbanking: false,
-  //       wallet: false,
-  //     },
-  //   };
- 
-  //   const paymentObject = new window.Razorpay(options);
-  //   paymentObject.open();
- 
-  //   setProcessing(false);
-  // };
-  // const handleCheckout = () => {
-  //   const upiLink = `upi://pay?pa=your-vpa@upi&pn=Your Name&mc=&tid=&tr=&tn=Chocolate Purchase&am=1&cu=INR`;
-  //   // Redirect to UPI payment link
-  //   window.location.href = upiLink;
-  // };
+  const handleProceedToCheckout = () => {
+    if (!user) {
+      // Redirect to login if not authenticated
+      navigate('/login');
+      return;
+    }
+    setShowAddressForm(true);
+  };
  
 
   const handleCheckout = () => {
@@ -100,8 +77,11 @@ function Cart() {
       
       modal: {
         ondismiss: () => {
-          console.log("Payment Cancelled");
-          alert("Payment Cancelled!");
+         
+          Swal.fire({
+            icon: 'error',
+            title: 'Payment Failed!',
+          });
         },
       },
     };
@@ -109,7 +89,21 @@ function Cart() {
     const rzp = new window.Razorpay(options);
     rzp.open();
   };
-  
+
+
+  const handleAddressSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setProcessing(true);
+handleCheckout();
+    setTimeout(() => {
+      // alert('Order placed successfully! Thank you for shopping with us.');
+      clearCart();
+      setProcessing(false);
+      setShowAddressForm(false);
+      navigate('/orders');
+    }, 2000);
+  };
+ 
   if (items.length === 0) {
     return (
 <div className="container mx-auto px-4 py-16 text-center">
@@ -168,8 +162,7 @@ function Cart() {
  
         <div className="bg-white p-6 rounded-lg shadow-md h-fit">
 <h2 className="text-xl font-bold text-amber-900 mb-4">Order Summary</h2>
- 
-          <div className="space-y-2 mb-4">
+<div className="space-y-2 mb-4">
 <div className="flex justify-between text-amber-700">
 <span>Subtotal</span>
 <span>₹{total}</span>
@@ -186,18 +179,122 @@ function Cart() {
 </div>
 </div>
  
+          {!user && (
+<div className="mb-4 p-3 bg-amber-50 rounded-md flex items-start gap-2">
+<AlertCircle className="text-amber-600 shrink-0 mt-0.5" size={18} />
+<p className="text-sm text-amber-700">
+                Please sign in to proceed with checkout
+</p>
+</div>
+          )}
+ 
           <button
-            onClick={handleCheckout}
+            onClick={handleProceedToCheckout}
             disabled={processing}
             className="w-full bg-amber-700 text-white px-6 py-3 rounded-md hover:bg-amber-800 transition-colors disabled:bg-amber-400"
 >
-            {processing ? 'Processing...' : 'Proceed to Payment'}
+            {processing ? 'Processing...' : 'Proceed to Checkout'}
 </button>
 </div>
 </div>
+ 
+      {/* Address Modal */}
+      {showAddressForm && (
+<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+<div className="bg-white rounded-lg shadow-xl w-full max-w-lg m-4 p-6">
+<h2 className="text-xl font-semibold text-amber-900 mb-4">Shipping Address</h2>
+<form onSubmit={handleAddressSubmit} className="space-y-4">
+<div>
+<label className="block text-sm font-medium text-amber-900">Full Name</label>
+<input
+                  type="text"
+                  required
+                  value={addressData.fullName}
+                  onChange={(e) => setAddressData({ ...addressData, fullName: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-amber-300 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-200"
+                />
+</div>
+<div>
+<label className="block text-sm font-medium text-amber-900">Street Address</label>
+<input
+                  type="text"
+                  required
+                  value={addressData.streetAddress}
+                  onChange={(e) => setAddressData({ ...addressData, streetAddress: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-amber-300 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-200"
+                />
+</div>
+ 
+              <div className="grid grid-cols-2 gap-4">
+<div>
+<label className="block text-sm font-medium text-amber-900">City</label>
+<input
+                    type="text"
+                    required
+                    value={addressData.city}
+                    onChange={(e) => setAddressData({ ...addressData, city: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-amber-300 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-200"
+                  />
+</div>
+<div>
+<label className="block text-sm font-medium text-amber-900">State</label>
+<input
+                    type="text"
+                    required
+                    value={addressData.state}
+                    onChange={(e) => setAddressData({ ...addressData, state: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-amber-300 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-200"
+                  />
+</div>
+</div>
+ 
+              <div className="grid grid-cols-2 gap-4">
+<div>
+<label className="block text-sm font-medium text-amber-900">PIN Code</label>
+<input
+                    type="text"
+                    required
+                    pattern="[0-9]{6}"
+                    value={addressData.pincode}
+                    onChange={(e) => setAddressData({ ...addressData, pincode: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-amber-300 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-200"
+                  />
+</div>
+<div>
+<label className="block text-sm font-medium text-amber-900">Phone Number</label>
+<input
+                    type="tel"
+                    required
+                    pattern="[0-9]{10}"
+                    value={addressData.phone}
+                    onChange={(e) => setAddressData({ ...addressData, phone: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-amber-300 shadow-sm focus:border-amber-500 focus:ring focus:ring-amber-200"
+                  />
+</div>
+</div>
+ 
+              <div className="flex justify-end gap-4 mt-6">
+<button
+                  type="button"
+                  onClick={() => setShowAddressForm(false)}
+                  className="px-4 py-2 text-sm font-medium text-amber-700 hover:text-amber-800"
+>
+                  Cancel
+</button>
+<button
+                  type="submit"
+                  disabled={processing}
+                  className="px-6 py-2 text-sm font-medium text-white bg-amber-600 rounded-md hover:bg-amber-700 disabled:bg-amber-400"
+>
+                  {processing ? 'Processing...' : 'Proceed to Payment'}
+</button>
+</div>
+</form>
+</div>
+</div>
+      )}
 </main>
   );
 }
  
 export default Cart;
-

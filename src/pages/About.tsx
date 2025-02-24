@@ -44,6 +44,7 @@ function About() {
             We're committed to sustainability and ethical sourcing. All our cocoa is responsibly sourced, and we work 
             directly with farmers to ensure fair practices and the highest quality ingredients.
           </p>
+            
         </div>
       </div>
     </main>
